@@ -1,14 +1,7 @@
 api_version: 1
 web_docroot: true
-php_version: 8.2
+php_version: 8.3
 
 # See https://pantheon.io/docs/pantheon-yml#specify-a-version-of-mariadb
 database:
-  version: 10.4
-
-workflows:
-  sync_code:
-    after:
-      - type: webphp
-        description: 'Push changes back to GitHub if needed'
-        script: private/scripts/quicksilver/quicksilver-pushback/push-back.php
+  version: 10.6
