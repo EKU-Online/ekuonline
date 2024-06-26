@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Don't show deprecations
  */
@@ -65,10 +66,24 @@ if ( ! isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ):
 	/**
 	 * Set Database Details
 	 */
-	define( 'DB_NAME', getenv( 'DB_NAME' ) );
-	define( 'DB_USER', getenv( 'DB_USER' ) );
-	define( 'DB_PASSWORD', getenv( 'DB_PASSWORD' ) !== false ? getenv( 'DB_PASSWORD' ) : '' );
-	define( 'DB_HOST', getenv( 'DB_HOST' ) );
+
+    /** This will ensure these are only loaded on Lando */
+    if (getenv('LANDO_INFO')) {
+        /**  Parse the LANDO INFO  */
+        $lando_info = json_decode(getenv('LANDO_INFO'));
+
+        /** Get the database config */
+        $database_config = $lando_info->database;
+        define('DB_NAME', $database_config->creds->database);
+        define('DB_USER', $database_config->creds->user);
+        define('DB_PASSWORD', $database_config->creds->password);
+        define('DB_HOST', $database_config->internal_connection->host);
+    } else {
+        define('DB_NAME', getenv('DB_NAME'));
+        define('DB_USER', getenv('DB_USER'));
+        define('DB_PASSWORD', getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '');
+        define('DB_HOST', getenv('DB_HOST'));
+    }
 
 	/**
 	 * Set debug modes
@@ -154,7 +169,6 @@ if ( isset( $_ENV['PANTHEON_ENVIRONMENT'] ) ):
 		}
 		define( 'WP_HOME', $scheme . '://' . $_SERVER['HTTP_HOST'] );
 		define( 'WP_SITEURL', $scheme . '://' . $_SERVER['HTTP_HOST'] . '/wp' );
-
 	}
 
 	// Force the use of a safe temp directory when in a container

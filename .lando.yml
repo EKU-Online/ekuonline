@@ -1,0 +1,16 @@
+name: ekuonline
+recipe: wordpress
+
+config:
+  webroot: web
+  xdebug: false
+
+services:
+  appserver:
+    type: php:8.3
+  database:
+    type: mariadb:10.6
+
+events:
+  post-start:
+    - composer install --no-interaction
