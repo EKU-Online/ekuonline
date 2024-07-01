@@ -8,25 +8,44 @@ config:
 services:
   appserver:
     type: php:8.3 #match Pantheon
+    run:
+      - echo "Beginning composer install..."
+      - cd $LANDO_MOUNT && composer install
     overrides:
       environment:
         PHP_IDE_CONFIG: "serverName=appserver"
         XDEBUG_SESSION_START: true
   database:
     type: mariadb:10.6 #match Pantheon
-  pma: #optional phpmyadmin container
+  pma:
     type: phpmyadmin
     hosts:
       - database
-  mailhog: #optional mailhog container
+  mailhog:
     type: mailhog
     hogfrom:
       - appserver
+  node:
+    type: node
+    build:
+      - echo "Beginning npm install and build..."
+      - cd /app/web/wp-content/themes/eku2025 && npm install
+    command: cd /app/web/wp-content/themes/eku2025 && npm run dev
+
+proxy:
+  pma:
+    - pma.lndo.site
+  mailhog:
+    - mail.lndo.site
+
+tooling:
+  node:
+    service: node
+  npm:
+    service: node
 
 events:
-  post-start:
-    - composer install --no-interaction
-    #@TODO add command to build theme
-  pre-stop:
+  post-start: #begin dev
+  pre-stop: #backup the local database
     - echo "Exporting database..."
-    - wp db export --path=/app - | gzip > /app/db_backup.sql.gz
+    - wp db export --path=/app/web - | gzip > /app/db_backup.sql.gz
