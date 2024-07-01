@@ -3,14 +3,30 @@ recipe: wordpress
 
 config:
   webroot: web
-  xdebug: false
+  xdebug: true
 
 services:
   appserver:
-    type: php:8.3
+    type: php:8.3 #match Pantheon
+    overrides:
+      environment:
+        PHP_IDE_CONFIG: "serverName=appserver"
+        XDEBUG_SESSION_START: true
   database:
-    type: mariadb:10.6
+    type: mariadb:10.6 #match Pantheon
+  pma: #optional phpmyadmin container
+    type: phpmyadmin
+    hosts:
+      - database
+  mailhog: #optional mailhog container
+    type: mailhog
+    hogfrom:
+      - appserver
 
 events:
   post-start:
     - composer install --no-interaction
+    #@TODO add command to build theme
+  pre-stop:
+    - echo "Exporting database..."
+    - wp db export --path=/app - | gzip > /app/db_backup.sql.gz
